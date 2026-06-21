@@ -32,7 +32,12 @@ from omegaconf import DictConfig, OmegaConf, open_dict
 from pytorch_lightning.callbacks import Callback, ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.timer import Interval, Timer
-from pytorch_lightning.loggers import MLFlowLogger, NeptuneLogger, TensorBoardLogger, WandbLogger
+from pytorch_lightning.loggers import MLFlowLogger, TensorBoardLogger, WandbLogger
+
+try:
+    from pytorch_lightning.loggers import NeptuneLogger
+except Exception:
+    NeptuneLogger = None
 from pytorch_lightning.loops import _TrainingEpochLoop
 from pytorch_lightning.strategies.ddp import DDPStrategy
 
@@ -894,6 +899,10 @@ def configure_loggers(
         logging.info("ClearMLLogger has been set up")
 
     if create_neptune_logger:
+        if NeptuneLogger is None:
+            raise ImportError(
+                "NeptuneLogger is unavailable. Install compatible pytorch-lightning/neptune or disable neptune logging."
+            )
         if neptune_kwargs is None:
             neptune_kwargs = {}
         if "name" not in neptune_kwargs and "project" not in neptune_kwargs:
